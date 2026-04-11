@@ -49,34 +49,79 @@ RÈGLES ABSOLUES :
 → TOUJOURS terminer avec quelque chose que l'élève a créé
 → Si bloqué : méthode des 3 reformulations avec analogies différentes
 
-DÉMARRAGE : Présente-toi comme ARIA avec une accroche percutante, présente les 12 cours, puis pose ces questions une à une en attendant chaque réponse : prénom, année du secondaire, ce qu'il connaît déjà de l'IA, ce qui l'attire dans la formation, ce qu'il veut savoir créer à la fin. Puis personnalise le cours 1 selon les réponses.`;
+QUAND UN ÉLÈVE REVIENT (contexte de reprise fourni) :
+→ Accueille-le chaleureusement par son prénom
+→ Fais un bref résumé positif de ce qu'il a déjà accompli
+→ Propose de continuer là où il s'est arrêté OU de revoir un cours précédent
+→ Ne recommence jamais depuis le début sans que l'élève le demande
+
+DÉMARRAGE PREMIÈRE FOIS : Présente-toi comme ARIA avec une accroche percutante, présente les 12 cours, puis pose ces questions une à une en attendant chaque réponse : prénom, année du secondaire, ce qu'il connaît déjà de l'IA, ce qui l'attire dans la formation, ce qu'il veut savoir créer à la fin. Puis personnalise le cours 1 selon les réponses.`;
 
 const COURSES = [
-  { id: 1, title: "C'est quoi l'IA vraiment ?", module: 1, color: "#E6F1FB", border: "#85B7EB", text: "#0C447C" },
-  { id: 2, title: "L'art du prompt", module: 1, color: "#E6F1FB", border: "#85B7EB", text: "#0C447C" },
-  { id: 3, title: "Prompt avancé + IA texte", module: 1, color: "#E6F1FB", border: "#85B7EB", text: "#0C447C" },
-  { id: 4, title: "IA d'image", module: 2, color: "#EEEDFE", border: "#AFA9EC", text: "#3C3489" },
-  { id: 5, title: "IA musique & voix", module: 2, color: "#EEEDFE", border: "#AFA9EC", text: "#3C3489" },
-  { id: 6, title: "IA vidéo", module: 3, color: "#FAEEDA", border: "#EF9F27", text: "#633806" },
-  { id: 7, title: "Coder sans coder", module: 3, color: "#FAEEDA", border: "#EF9F27", text: "#633806" },
-  { id: 8, title: "Assistant personnel", module: 3, color: "#FAEEDA", border: "#EF9F27", text: "#633806" },
-  { id: 9, title: "IA multimodale", module: 4, color: "#E1F5EE", border: "#5DCAA5", text: "#085041" },
-  { id: 10, title: "IA & métiers du futur", module: 4, color: "#E1F5EE", border: "#5DCAA5", text: "#085041" },
-  { id: 11, title: "IA & éthique", module: 4, color: "#E1F5EE", border: "#5DCAA5", text: "#085041" },
-  { id: 12, title: "Projet final", module: 5, color: "#FAECE7", border: "#F0997B", text: "#712B13" },
+  { id: 1, title: "C'est quoi l'IA vraiment ?", module: 1 },
+  { id: 2, title: "L'art du prompt", module: 1 },
+  { id: 3, title: "Prompt avancé + IA texte", module: 1 },
+  { id: 4, title: "IA d'image", module: 2 },
+  { id: 5, title: "IA musique & voix", module: 2 },
+  { id: 6, title: "IA vidéo", module: 3 },
+  { id: 7, title: "Coder sans coder", module: 3 },
+  { id: 8, title: "Assistant personnel", module: 3 },
+  { id: 9, title: "IA multimodale", module: 4 },
+  { id: 10, title: "IA & métiers du futur", module: 4 },
+  { id: 11, title: "IA & éthique", module: 4 },
+  { id: 12, title: "Projet final", module: 5 },
 ];
 
 const MODULE_LABELS = {
-  1: "Fondations",
-  2: "Création visuelle",
-  3: "Vidéo & Code",
-  4: "Avancé & Éthique",
-  5: "Projet final",
+  1: "Fondations", 2: "Création visuelle",
+  3: "Vidéo & Code", 4: "Avancé & Éthique", 5: "Projet final",
 };
+
+const MODULE_COLORS = {
+  1: { bg: "#E6F1FB", border: "#85B7EB", text: "#0C447C" },
+  2: { bg: "#EEEDFE", border: "#AFA9EC", text: "#3C3489" },
+  3: { bg: "#FAEEDA", border: "#EF9F27", text: "#633806" },
+  4: { bg: "#E1F5EE", border: "#5DCAA5", text: "#085041" },
+  5: { bg: "#FAECE7", border: "#F0997B", text: "#712B13" },
+};
+
+function getStorageKey(studentId) {
+  return `aria_student_${studentId.toLowerCase().replace(/\s+/g, "_")}`;
+}
+
+function loadStudentData(studentId) {
+  try {
+    const raw = localStorage.getItem(getStorageKey(studentId));
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveStudentData(studentId, data) {
+  try {
+    localStorage.setItem(getStorageKey(studentId), JSON.stringify(data));
+  } catch {}
+}
+
+function getAllStudents() {
+  try {
+    const students = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith("aria_student_")) {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const data = JSON.parse(raw);
+          students.push(data);
+        }
+      }
+    }
+    return students.sort((a, b) => (b.lastSeen || 0) - (a.lastSeen || 0));
+  } catch { return []; }
+}
 
 function TypingIndicator() {
   return (
-    <div style={{ display: "flex", gap: 4, padding: "12px 16px", alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 4, padding: "10px 14px", alignItems: "center" }}>
       {[0, 1, 2].map(i => (
         <div key={i} style={{
           width: 7, height: 7, borderRadius: "50%",
@@ -88,45 +133,114 @@ function TypingIndicator() {
   );
 }
 
+function ProgressBadge({ completed }) {
+  const pct = Math.round((completed / 12) * 100);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ flex: 1, height: 4, background: "var(--color-border-tertiary)", borderRadius: 4, overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", background: "#7F77DD", borderRadius: 4, transition: "width .3s" }} />
+      </div>
+      <span style={{ fontSize: 11, color: "var(--color-text-secondary)", minWidth: 36 }}>{completed}/12</span>
+    </div>
+  );
+}
+
 export default function App() {
+  const [screen, setScreen] = useState("identity");
+  const [studentId, setStudentId] = useState("");
+  const [inputId, setInputId] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [started, setStarted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [studentName, setStudentName] = useState("");
+  const [studentData, setStudentData] = useState(null);
+  const [knownStudents, setKnownStudents] = useState([]);
   const endRef = useRef(null);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    setKnownStudents(getAllStudents());
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const startSession = async () => {
-    setStarted(true);
-    setLoading(true);
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json",
-					"x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-					"anthropic-version": "2023-06-01",
-					"anthropic-dangerous-direct-browser-access": "true", },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: ARIA_SYSTEM_PROMPT,
-          messages: [{ role: "user", content: "Démarre la session et présente-toi." }],
-        }),
-      });
-      const data = await res.json();
-      const text = data.content?.map(b => b.text || "").join("") || "Bonjour ! Je suis ARIA.";
-      setMessages([{ role: "assistant", content: text }]);
-    } catch {
-      setMessages([{ role: "assistant", content: "Erreur de connexion. Vérifie ta connexion Internet et réessaie." }]);
+  const persistData = (id, msgs, completedCourses, name) => {
+    const data = {
+      id,
+      name: name || id,
+      messages: msgs.slice(-60),
+      completedCourses: completedCourses || [],
+      lastSeen: Date.now(),
+    };
+    saveStudentData(id, data);
+    setStudentData(data);
+  };
+
+  const startSession = async (id, isReturning, existingData) => {
+    setStudentId(id);
+    setScreen("chat");
+
+    if (isReturning && existingData && existingData.messages.length > 0) {
+      setMessages(existingData.messages);
+      setStudentData(existingData);
+      setLoading(true);
+      const resumeMsg = `L'élève ${existingData.name} revient sur ARIA. Voici un résumé de sa progression : il/elle a eu ${existingData.messages.length} échanges avec toi et a complété ${(existingData.completedCourses || []).length} cours. Accueille-le/la chaleureusement par son prénom, fais un bref récap positif de ce qu'il/elle a accompli, et propose de continuer là où il/elle s'était arrêté(e).`;
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            system: ARIA_SYSTEM_PROMPT,
+            messages: [...existingData.messages, { role: "user", content: resumeMsg }],
+          }),
+        });
+        const data = await res.json();
+        const reply = data.content?.map(b => b.text || "").join("") || "";
+        const newMsgs = [...existingData.messages, { role: "assistant", content: reply }];
+        setMessages(newMsgs);
+        persistData(id, newMsgs, existingData.completedCourses, existingData.name);
+      } catch {
+        setMessages(prev => [...prev, { role: "assistant", content: "Bon retour ! Prêt(e) à continuer ?" }]);
+      }
+      setLoading(false);
+    } else {
+      setLoading(true);
+      try {
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true",
+          },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            system: ARIA_SYSTEM_PROMPT,
+            messages: [{ role: "user", content: "Démarre la session et présente-toi." }],
+          }),
+        });
+        const data = await res.json();
+        const reply = data.content?.map(b => b.text || "").join("") || "Salut ! Je suis ARIA.";
+        const initMsgs = [{ role: "assistant", content: reply }];
+        setMessages(initMsgs);
+        persistData(id, initMsgs, [], id);
+      } catch {
+        setMessages([{ role: "assistant", content: "Erreur de connexion. Vérifie ta connexion Internet." }]);
+      }
+      setLoading(false);
     }
-    setLoading(false);
-    setTimeout(() => inputRef.current?.focus(), 100);
+    setTimeout(() => inputRef.current?.focus(), 200);
   };
 
   const sendMessage = async (text) => {
@@ -137,19 +251,24 @@ export default function App() {
     setMessages(newMessages);
     setLoading(true);
 
-    if (!studentName) {
-      const nameMatch = userMsg.match(/(?:je m'appelle|mon nom est|c'est|moi c'est|appelle-moi)\s+([A-ZÀ-Ÿa-zà-ÿ]+)/i);
-      if (nameMatch) setStudentName(nameMatch[1]);
-      else if (newMessages.length <= 3 && userMsg.split(" ").length === 1) setStudentName(userMsg);
+    const completedCourses = studentData?.completedCourses || [];
+    const courseMatch = userMsg.match(/cours\s+(\d+)/i);
+    if (courseMatch) {
+      const num = parseInt(courseMatch[1]);
+      if (num >= 1 && num <= 12 && !completedCourses.includes(num - 1) && num > 1) {
+        completedCourses.push(num - 1);
+      }
     }
 
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json",
-					"x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
-					"anthropic-version": "2023-06-01",
-					"anthropic-dangerous-direct-browser-access": "true", },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1000,
@@ -159,9 +278,18 @@ export default function App() {
       });
       const data = await res.json();
       const reply = data.content?.map(b => b.text || "").join("") || "Je n'ai pas pu répondre.";
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      const finalMsgs = [...newMessages, { role: "assistant", content: reply }];
+      setMessages(finalMsgs);
+
+      const nameMatch = userMsg.match(/(?:je m'appelle|mon nom est|c'est|moi c'est|appelle-moi)\s+([A-ZÀ-Ÿa-zà-ÿ]+)/i)
+        || (newMessages.length <= 4 && userMsg.split(" ").length === 1 ? [null, userMsg] : null);
+      const detectedName = nameMatch ? nameMatch[1] : (studentData?.name || studentId);
+
+      persistData(studentId, finalMsgs, completedCourses, detectedName);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "Erreur de connexion. Réessaie dans un instant." }]);
+      const errMsgs = [...newMessages, { role: "assistant", content: "Erreur de connexion. Réessaie dans un instant." }];
+      setMessages(errMsgs);
+      persistData(studentId, errMsgs, studentData?.completedCourses || [], studentData?.name || studentId);
     }
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -169,103 +297,186 @@ export default function App() {
 
   const jumpToCourse = (course) => {
     setSidebarOpen(false);
-    sendMessage(`Démarre le cours ${course.id} : "${course.title}". Fournis le matériel didactique complet : fiche de cours, lexique, contenu théorique, fiche mémo, et les tutoriels step-by-step pour tous les TPs.`);
+    const completedCourses = studentData?.completedCourses || [];
+    if (!completedCourses.includes(course.id)) {
+      completedCourses.push(course.id);
+      persistData(studentId, messages, completedCourses, studentData?.name);
+    }
+    sendMessage(`Démarre le cours ${course.id} : "${course.title}". Fournis le matériel didactique complet : fiche de cours, lexique, contenu théorique, fiche mémo, et les tutoriels step-by-step pour tous les TPs avec le mini-projet.`);
+  };
+
+  const resetStudent = () => {
+    if (confirm("Effacer toute la progression ? Cette action est irréversible.")) {
+      try { localStorage.removeItem(getStorageKey(studentId)); } catch {}
+      setMessages([]);
+      setStudentData(null);
+      setScreen("identity");
+      setInputId("");
+    }
   };
 
   const formatMessage = (text) => {
     return text.split("\n").map((line, i) => {
-      if (line.startsWith("# ")) return <h2 key={i} style={{ fontSize: 17, fontWeight: 500, margin: "12px 0 4px" }}>{line.slice(2)}</h2>;
-      if (line.startsWith("## ")) return <h3 key={i} style={{ fontSize: 15, fontWeight: 500, margin: "10px 0 4px" }}>{line.slice(3)}</h3>;
-      if (line.startsWith("→ ") || line.startsWith("• ")) return <div key={i} style={{ paddingLeft: 16, margin: "2px 0", display: "flex", gap: 6 }}><span style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }}>→</span><span>{line.slice(2)}</span></div>;
-      if (line.match(/^[✅⚠️💡📌🎯🛠️]/)) return <div key={i} style={{ margin: "3px 0" }}>{line}</div>;
+      if (line.startsWith("# ")) return <h2 key={i} style={{ fontSize: 16, fontWeight: 500, margin: "10px 0 4px", color: "var(--color-text-primary)" }}>{line.slice(2)}</h2>;
+      if (line.startsWith("## ")) return <h3 key={i} style={{ fontSize: 14, fontWeight: 500, margin: "8px 0 3px", color: "var(--color-text-primary)" }}>{line.slice(3)}</h3>;
+      if (line.startsWith("**") && line.endsWith("**")) return <div key={i} style={{ fontWeight: 500, margin: "4px 0", color: "var(--color-text-primary)" }}>{line.slice(2, -2)}</div>;
+      if (line.startsWith("→ ") || line.startsWith("• ")) return <div key={i} style={{ paddingLeft: 14, margin: "2px 0", display: "flex", gap: 6, color: "var(--color-text-primary)" }}><span style={{ color: "#7F77DD", flexShrink: 0 }}>→</span><span>{line.slice(2)}</span></div>;
       if (line.startsWith("╔") || line.startsWith("║") || line.startsWith("╚") || line.startsWith("┌") || line.startsWith("│") || line.startsWith("└")) {
-        return <div key={i} style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--color-text-secondary)", margin: "1px 0" }}>{line}</div>;
+        return <div key={i} style={{ fontFamily: "monospace", fontSize: 12, color: "var(--color-text-secondary)", margin: "1px 0", whiteSpace: "pre" }}>{line}</div>;
       }
-      if (line.trim() === "") return <div key={i} style={{ height: 6 }} />;
-      return <div key={i} style={{ margin: "2px 0", lineHeight: 1.6 }}>{line}</div>;
+      if (line.trim() === "") return <div key={i} style={{ height: 5 }} />;
+      const formatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      return <div key={i} style={{ margin: "2px 0", lineHeight: 1.65, color: "var(--color-text-primary)" }} dangerouslySetInnerHTML={{ __html: formatted }} />;
     });
   };
 
-  if (!started) {
+  // ── ÉCRAN D'IDENTIFICATION ──
+  if (screen === "identity") {
     return (
-      <div style={{ minHeight: 500, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem 1rem", gap: 24 }}>
+      <div style={{ minHeight: 520, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem 1rem", gap: 20 }}>
         <style>{`@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }`}</style>
-        <div style={{ textAlign: "center", maxWidth: 420 }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#EEEDFE", border: "2px solid #AFA9EC", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>
-            🤖
-          </div>
-          <h1 style={{ fontSize: 22, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 8px" }}>Bienvenue dans la formation IA</h1>
-          <p style={{ fontSize: 14, color: "var(--color-text-secondary)", margin: "0 0 8px", lineHeight: 1.6 }}>
-            ARIA est ton formateur IA personnel. Il va t'apprendre à maîtriser l'intelligence artificielle — de zéro à utilisateur avancé — en 12 cours pratiques.
-          </p>
-          <p style={{ fontSize: 13, color: "var(--color-text-tertiary)", margin: "0 0 24px" }}>Aucun compte requis · 100 % gratuit · Secondaire</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 24, textAlign: "left" }}>
-            {["12 cours complets", "Tutoriels step-by-step", "7 mini-projets", "Outils 100 % gratuits"].map(f => (
-              <div key={f} style={{ background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "var(--color-text-secondary)" }}>
-                ✓ {f}
+
+        <div style={{ textAlign: "center", maxWidth: 400, width: "100%" }}>
+          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#EEEDFE", border: "2px solid #AFA9EC", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 26 }}>🤖</div>
+          <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 6px" }}>ARIA — Formateur IA</h1>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: "0 0 20px" }}>Entre ton prénom pour retrouver ta progression ou commencer</p>
+
+          {knownStudents.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", marginBottom: 8, textTransform: "uppercase", letterSpacing: ".05em" }}>Profils enregistrés sur cet appareil</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {knownStudents.slice(0, 4).map(s => (
+                  <button key={s.id} onClick={() => startSession(s.id, true, s)}
+                    style={{ background: "var(--color-background-secondary)", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 10, padding: "10px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#EEEDFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, fontWeight: 500, color: "#3C3489" }}>
+                      {(s.name || s.id).charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)" }}>{s.name || s.id}</div>
+                      <ProgressBadge completed={(s.completedCourses || []).length} />
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", flexShrink: 0 }}>
+                      {s.lastSeen ? new Date(s.lastSeen).toLocaleDateString("fr-CA", { month: "short", day: "numeric" }) : ""}
+                    </div>
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={inputId}
+              onChange={e => setInputId(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && inputId.trim()) { const existing = loadStudentData(inputId.trim()); startSession(inputId.trim(), !!existing, existing); } }}
+              placeholder="Ton prénom (ex: Sofia, Marcus...)"
+              style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: "0.5px solid var(--color-border-secondary)", background: "var(--color-background-primary)", color: "var(--color-text-primary)", fontSize: 14, outline: "none" }}
+              autoFocus
+            />
+            <button
+              onClick={() => { if (inputId.trim()) { const existing = loadStudentData(inputId.trim()); startSession(inputId.trim(), !!existing, existing); } }}
+              disabled={!inputId.trim()}
+              style={{ padding: "10px 16px", background: "#7F77DD", color: "#fff", border: "none", borderRadius: 8, fontSize: 14, cursor: "pointer", opacity: inputId.trim() ? 1 : .4 }}>
+              →
+            </button>
           </div>
-          <button onClick={startSession} style={{ width: "100%", padding: "12px 24px", background: "#7F77DD", color: "#fff", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 500, cursor: "pointer" }}>
-            Démarrer avec ARIA →
-          </button>
+          <p style={{ fontSize: 11, color: "var(--color-text-tertiary)", margin: "10px 0 0" }}>
+            Ta progression est sauvegardée automatiquement sur cet appareil
+          </p>
         </div>
       </div>
     );
   }
 
+  // ── ÉCRAN DE CHAT ──
   return (
-    <div style={{ display: "flex", height: 560, fontFamily: "var(--font-sans)", overflow: "hidden", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 14 }}>
+    <div style={{ display: "flex", height: 580, fontFamily: "var(--font-sans)", overflow: "hidden", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 14 }}>
       <style>{`
         @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
-        .msg-user { background: #7F77DD; color: #fff; border-radius: 14px 14px 4px 14px; align-self: flex-end; max-width: 80%; padding: 10px 14px; font-size: 14px; line-height: 1.5; }
-        .msg-aria { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 14px 14px 14px 4px; align-self: flex-start; max-width: 90%; padding: 12px 16px; font-size: 13.5px; color: var(--color-text-primary); }
-        .course-btn { background: none; border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: 8px 10px; text-align: left; cursor: pointer; transition: background .15s; width: 100%; margin-bottom: 4px; }
+        .msg-user { background: #7F77DD; color: #fff; border-radius: 14px 14px 4px 14px; align-self: flex-end; max-width: 82%; padding: 10px 14px; font-size: 13.5px; line-height: 1.55; }
+        .msg-aria { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 14px 14px 14px 4px; align-self: flex-start; max-width: 92%; padding: 12px 15px; font-size: 13px; }
+        .course-btn { background: none; border: 0.5px solid var(--color-border-tertiary); border-radius: 8px; padding: 7px 10px; text-align: left; cursor: pointer; transition: background .15s; width: 100%; margin-bottom: 3px; }
         .course-btn:hover { background: var(--color-background-secondary); }
-        .send-btn { background: #7F77DD; color: #fff; border: none; border-radius: 8px; padding: 0 16px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
-        .send-btn:disabled { opacity: .4; cursor: not-allowed; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 4px; }
-        textarea { resize: none; outline: none; border: 0.5px solid var(--color-border-secondary); border-radius: 8px; padding: 10px 12px; font-size: 14px; font-family: var(--font-sans); background: var(--color-background-primary); color: var(--color-text-primary); width: 100%; line-height: 1.5; }
+        .course-btn.done { border-left: 3px solid #7F77DD; }
+        textarea { resize: none; outline: none; border: 0.5px solid var(--color-border-secondary); border-radius: 8px; padding: 9px 12px; font-size: 14px; font-family: var(--font-sans); background: var(--color-background-primary); color: var(--color-text-primary); width: 100%; line-height: 1.5; }
         textarea:focus { border-color: #7F77DD; }
+        ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: var(--color-border-secondary); border-radius: 4px; }
       `}</style>
 
+      {/* SIDEBAR */}
       {sidebarOpen && (
-        <div style={{ width: 220, borderRight: "0.5px solid var(--color-border-tertiary)", overflowY: "auto", padding: "12px 10px", flexShrink: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)" }}>COURS</span>
-            <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-tertiary)", fontSize: 16 }}>×</button>
+        <div style={{ width: 210, borderRight: "0.5px solid var(--color-border-tertiary)", overflowY: "auto", padding: "10px 8px", flexShrink: 0, background: "var(--color-background-primary)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--color-text-secondary)" }}>PROGRESSION</span>
+            <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-tertiary)", fontSize: 16, lineHeight: 1 }}>×</button>
           </div>
+
+          <div style={{ background: "var(--color-background-secondary)", borderRadius: 8, padding: "8px 10px", marginBottom: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-primary)", marginBottom: 6 }}>
+              {studentData?.name || studentId}
+            </div>
+            <ProgressBadge completed={(studentData?.completedCourses || []).length} />
+          </div>
+
           {[1, 2, 3, 4, 5].map(mod => (
             <div key={mod} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-tertiary)", letterSpacing: ".05em", textTransform: "uppercase", marginBottom: 4 }}>Module {mod} — {MODULE_LABELS[mod]}</div>
-              {COURSES.filter(c => c.module === mod).map(c => (
-                <button key={c.id} className="course-btn" onClick={() => jumpToCourse(c)}>
-                  <div style={{ fontSize: 10, color: "var(--color-text-tertiary)", marginBottom: 2 }}>Cours {c.id}</div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-primary)", fontWeight: 500 }}>{c.title}</div>
-                </button>
-              ))}
+              <div style={{ fontSize: 10, fontWeight: 500, color: "var(--color-text-tertiary)", letterSpacing: ".05em", textTransform: "uppercase", marginBottom: 4 }}>
+                {MODULE_LABELS[mod]}
+              </div>
+              {COURSES.filter(c => c.module === mod).map(c => {
+                const done = (studentData?.completedCourses || []).includes(c.id);
+                const col = MODULE_COLORS[mod];
+                return (
+                  <button key={c.id} className={`course-btn${done ? " done" : ""}`} onClick={() => jumpToCourse(c)}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 16, height: 16, borderRadius: "50%", background: done ? "#7F77DD" : col.bg, border: `1px solid ${done ? "#7F77DD" : col.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 9, color: done ? "#fff" : col.text, fontWeight: 500 }}>
+                        {done ? "✓" : c.id}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 11, color: "var(--color-text-primary)", fontWeight: done ? 500 : 400 }}>{c.title}</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           ))}
+
+          <button onClick={resetStudent} style={{ width: "100%", marginTop: 8, padding: "7px", background: "none", border: "0.5px solid var(--color-border-danger)", borderRadius: 8, color: "var(--color-text-danger)", fontSize: 11, cursor: "pointer" }}>
+            Effacer ma progression
+          </button>
         </div>
       )}
 
+      {/* CHAT PRINCIPAL */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <div style={{ padding: "10px 14px", borderBottom: "0.5px solid var(--color-border-tertiary)", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <button onClick={() => setSidebarOpen(o => !o)} style={{ background: "none", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: 13 }}>
+
+        {/* HEADER */}
+        <div style={{ padding: "9px 12px", borderBottom: "0.5px solid var(--color-border-tertiary)", display: "flex", alignItems: "center", gap: 9, flexShrink: 0 }}>
+          <button onClick={() => setSidebarOpen(o => !o)} style={{ background: "none", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: 12, flexShrink: 0 }}>
             ☰ Cours
           </button>
           <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#EEEDFE", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0 }}>🤖</div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)" }}>ARIA{studentName ? ` — Formateur de ${studentName}` : " — Formateur IA"}</div>
-            <div style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>Formation IA · Secondaire · 12 cours</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              ARIA — {studentData?.name || studentId}
+            </div>
+            <div style={{ fontSize: 10, color: "var(--color-text-tertiary)" }}>
+              {(studentData?.completedCourses || []).length}/12 cours · {messages.length} échanges
+            </div>
           </div>
+          <button onClick={() => { setScreen("identity"); setMessages([]); setStudentData(null); setStudentId(""); setInputId(""); setKnownStudents(getAllStudents()); }}
+            style={{ background: "none", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--color-text-secondary)", fontSize: 11, flexShrink: 0 }}>
+            Changer
+          </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {/* MESSAGES */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
           {messages.map((m, i) => (
             <div key={i} className={m.role === "user" ? "msg-user" : "msg-aria"}>
               {m.role === "assistant" && (
-                <div style={{ fontSize: 10, fontWeight: 500, color: "#7F77DD", marginBottom: 6, letterSpacing: ".04em" }}>ARIA</div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: "#7F77DD", marginBottom: 5, letterSpacing: ".04em" }}>ARIA</div>
               )}
               {formatMessage(m.content)}
             </div>
@@ -279,16 +490,18 @@ export default function App() {
           <div ref={endRef} />
         </div>
 
-        <div style={{ padding: "10px 14px", borderTop: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: 8, alignItems: "flex-end" }}>
+        {/* INPUT */}
+        <div style={{ padding: "9px 12px", borderTop: "0.5px solid var(--color-border-tertiary)", display: "flex", gap: 7, alignItems: "flex-end" }}>
           <textarea
             ref={inputRef}
             rows={2}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            placeholder="Écris ta réponse ou pose une question…"
+            placeholder="Écris ta réponse ou pose une question… (Entrée pour envoyer)"
           />
-          <button className="send-btn" onClick={() => sendMessage()} disabled={loading || !input.trim()} style={{ height: 46 }}>
+          <button onClick={() => sendMessage()} disabled={loading || !input.trim()}
+            style={{ height: 44, width: 40, background: input.trim() && !loading ? "#7F77DD" : "var(--color-border-tertiary)", color: "#fff", border: "none", borderRadius: 8, cursor: input.trim() && !loading ? "pointer" : "not-allowed", fontSize: 16, flexShrink: 0, transition: "background .2s" }}>
             ↑
           </button>
         </div>
